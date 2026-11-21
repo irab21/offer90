@@ -50,24 +50,22 @@ img{max-width:100%; display:block}
 .app[data-mode="left"] .center,.app[data-mode="left"] .rail.right,
 .app[data-mode="right"] .center,.app[data-mode="right"] .rail.left,
 .app[data-mode="today"] .rail{display:none}
-/* Medium widths (e.g. inside a Notion embed): keep 3 columns, slimmer side rails */
-@media (max-width:1180px) and (min-width:861px){
-  body{padding-left:10px; padding-right:10px}
-  .app[data-mode="full"]{grid-template-columns:minmax(185px,21%) minmax(0,1fr) minmax(195px,23%); gap:14px}
-  .app[data-mode="full"] .card{padding:14px 14px}
-  .app[data-mode="full"] .willow{margin:-14px -14px 12px}
-  .app[data-mode="full"] .ring-wrap{flex-wrap:wrap; justify-content:center}
-  .app[data-mode="full"] .bars{flex-basis:100%}
-  .app[data-mode="full"] .crest .day-big{font-size:50.5px}
-  .app[data-mode="full"] .streak-nums{gap:12px}
-  .app[data-mode="full"] .streak-nums b{font-size:28.5px}
-  .app[data-mode="full"] .banner .txt{padding:18px 18px; padding-top:44px}
-}
-@media (max-width:860px){
-  .app[data-mode="full"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .app[data-mode="full"] .center{grid-column:1 / -1; order:-1}
-}
-@media (max-width:720px){ .app[data-mode="full"]{grid-template-columns:minmax(0,1fr)} }
+/* Layout sizes are chosen by fitLayout() (bottom of the script), not by media queries, so a
+   narrow Notion embed on a laptop keeps all three columns (scaled down) instead of stacking. */
+html.mid body{padding-left:10px; padding-right:10px}
+html.mid .app[data-mode="full"]{grid-template-columns:minmax(185px,21%) minmax(0,1fr) minmax(195px,23%); gap:14px}
+html.mid .app[data-mode="full"] .card{padding:14px 14px}
+html.mid .app[data-mode="full"] .willow{margin:-14px -14px 12px}
+html.mid .app[data-mode="full"] .ring-wrap{flex-wrap:wrap; justify-content:center}
+html.mid .app[data-mode="full"] .bars{flex-basis:100%}
+html.mid .app[data-mode="full"] .crest .day-big{font-size:50.5px}
+html.mid .app[data-mode="full"] .streak-nums{gap:12px}
+html.mid .app[data-mode="full"] .streak-nums b{font-size:28.5px}
+html.mid .app[data-mode="full"] .banner .txt{padding:18px 18px; padding-top:44px}
+/* Phones and tablets only: stack */
+html.stack .app[data-mode="full"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+html.stack .app[data-mode="full"] .center{grid-column:1 / -1; order:-1}
+html.stack1 .app[data-mode="full"]{grid-template-columns:minmax(0,1fr)}
 
 /* Cards */
 .card{background:var(--card); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow); padding:16px 18px; position:relative; min-width:0}
@@ -253,7 +251,7 @@ textarea{width:100%; min-height:70px; resize:vertical; border:1px solid var(--ru
 .saved i{width:7px; height:7px; border-radius:50%; background:currentColor}
 
 footer.credits{max-width:1480px; margin:22px auto 0; font:italic 13.5px/1.4 var(--body); color:var(--ink-2); text-align:center}
-@media (max-width:720px){ .banner .txt{padding-top:50px} .banner h1{font-size:36.5px} }
+html.stack1 .banner .txt{padding-top:50px} html.stack1 .banner h1{font-size:36.5px}
 @media (prefers-reduced-motion: no-preference){ .bar > i{transition:width .5s ease} .tick{transition:background .15s} }
 </style>
 </head>
@@ -685,7 +683,22 @@ document.addEventListener("click", function(e){
   else if(a==="restore-no"){ confirmRestore=null; backupMsg=""; render(); }
 });
 function revealedReset(){}
-function scrollTopCenter(){ if(mode()==="full" && window.innerWidth>860) return; var c=document.getElementById("center"); if(c && mode()!=="left" && mode()!=="right") c.scrollIntoView({block:"start"}); }
+function scrollTopCenter(){ if(mode()==="full" && !document.documentElement.classList.contains("stack")) return; var c=document.getElementById("center"); if(c && mode()!=="left" && mode()!=="right") c.scrollIntoView({block:"start"}); }
+/* ---------- layout fitting ----------
+   Mouse/trackpad screens (laptops, Notion desktop): always three columns. Below 880px of width the
+   whole dashboard is scaled down to fit, so shrinking the window never pushes the widgets to the bottom.
+   Touch screens (phones, tablets): the columns stack instead. */
+var DESIGN_MIN=880;
+function fitLayout(){
+  var root=document.documentElement, w=window.innerWidth, touch=false;
+  try{ touch = window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(any-pointer: fine)").matches; }catch(x){}
+  root.classList.remove("mid","stack","stack1"); root.style.zoom="";
+  if(touch && w<861){ root.classList.add("stack"); if(w<=720) root.classList.add("stack1"); return; }
+  if(w<1181) root.classList.add("mid");
+  if(w<DESIGN_MIN) root.style.zoom=String(Math.max(0.45, w/DESIGN_MIN));
+}
+fitLayout();
+var fitTimer=null; window.addEventListener("resize", function(){ clearTimeout(fitTimer); fitTimer=setTimeout(fitLayout,60); });
 window.addEventListener("hashchange", render);
 render();
 })();
