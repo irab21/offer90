@@ -70,6 +70,8 @@ html.stack1 .app[data-mode="full"]{grid-template-columns:minmax(0,1fr)}
 html.single body{padding:6px 6px 10px; background-image:none}
 html.single .app{gap:14px}
 
+.cont{padding:2px 2px 0}
+
 /* Cards */
 .card{background:var(--card); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow); padding:16px 18px; position:relative; min-width:0}
 .card h3{font:400 20.5px/1.15 var(--caps); letter-spacing:.02em; margin:0 0 10px; color:var(--walnut); text-wrap:balance}
@@ -356,7 +358,7 @@ function save(){
 window.addEventListener("storage", function(e){
   if(e.key===KEY){ S=load(); render(); }
   else if(e.key==="offer90.nav" && e.newValue){        /* a day clicked in the #left/#right embed opens it in #today */
-    try{ var nv=JSON.parse(e.newValue); if(nv.i>=0 && nv.i<N && (mode()==="today"||mode()==="full")){ sel=nv.i; render(); } }catch(x){}
+    try{ var nv=JSON.parse(e.newValue); if(nv.i>=0 && nv.i<N && nv.i!==sel){ sel=nv.i; render(); } }catch(x){}
   }
   else if(e.key==="offer90.theme"){ theme=e.newValue||"auto"; applyTheme(theme); render(); }
 });
@@ -428,7 +430,22 @@ var QBYID={}; D.drill.forEach(function(q){QBYID[q.id]=q});
 
 /* ---------- view state ---------- */
 var sel = todayClamp, revealed={}, quoteShift=0, backupMsg="", confirmRestore=null;
-function mode(){ var h=(location.hash||"").replace("#",""); return (h==="left"||h==="right"||h==="today")?h:"full"; }
+function mode(){ var h=(location.hash||"").replace("#",""); return (h==="left"||h==="right"||h==="today"||h==="top"||h==="bottom")?h:"full"; }
+function half(){ var m=mode(); return (m==="top"||m==="bottom")?m:null; }   /* #top / #bottom: full 3-column layout, split in two rows for Notion */
+function broadcastSel(){ try{ localStorage.setItem("offer90.nav", JSON.stringify({i:sel, t:Date.now()})); }catch(x){} }
+/* Which cards belong to the top half: first 3 on the left, first 2 on the right, centre up to the 2nd task block */
+function applyHalf(h){
+  var top=(h==="top");
+  [["left",3],["right",2]].forEach(function(c){
+    var kids=document.getElementById(c[0]).children;
+    for(var i=0;i<kids.length;i++) kids[i].style.display = ((i<c[1])===top) ? "" : "none";
+  });
+  var cen=document.getElementById("center"), kids=cen.children, cut=0, blocks=0;
+  for(var j=0;j<kids.length;j++){ if(kids[j].classList.contains("block")){ blocks++; cut=j+1; if(blocks===2) break; } }
+  for(var k=0;k<kids.length;k++) kids[k].style.display = ((k<cut)===top) ? "" : "none";
+  if(!top){ var day=D.days[sel];
+    cen.insertAdjacentHTML("afterbegin", '<div class="cont"><span class="eyebrow">Day '+day.n+' · '+esc(longDate(day))+' · continued</span></div>'); }
+}
 
 /* ---------- helpers ---------- */
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -617,7 +634,7 @@ function renderRight(st){
   var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
   h+='<section class="card backup"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
      '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
-     '<p class="note" style="margin-top:4px">Dashboard version 5</p>'+
+     '<p class="note" style="margin-top:4px">Dashboard version 6</p>'+
      '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
      '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
      (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
@@ -628,13 +645,14 @@ function renderRight(st){
 
 /* ---------- render ---------- */
 function render(){
-  var st=stats(), m=mode();
+  var st=stats(), hm=half(), m=hm?"full":mode();
   document.getElementById("app").setAttribute("data-mode", m);
   var keepScroll = window.scrollY, focusId = document.activeElement && document.activeElement.id;
   if(m==="full"||m==="left") document.getElementById("left").innerHTML=renderLeft(st);
   if(m==="full"||m==="today") document.getElementById("center").innerHTML=renderCenter();
   if(m==="full"||m==="right") document.getElementById("right").innerHTML=renderRight(st);
-  document.getElementById("credits").hidden = (m!=="full");
+  if(hm) applyHalf(hm);
+  document.getElementById("credits").hidden = !(mode()==="full" || hm==="bottom");
   if(focusId){ var el=document.getElementById(focusId); if(el && el.id!=="note" && el.id!=="bk") el.focus({preventScroll:true}); }
   window.scrollTo(0, keepScroll);
 }
@@ -653,10 +671,10 @@ document.addEventListener("input", function(e){
 document.addEventListener("click", function(e){
   var b=e.target.closest("[data-act]"); if(!b || b.tagName==="INPUT" || b.tagName==="TEXTAREA") return;
   var a=b.getAttribute("data-act"), day=D.days[sel];
-  if(a==="prev"&&sel>0){sel--; revealedReset(); render(); scrollTopCenter();}
-  else if(a==="next"&&sel<N-1){sel++; revealedReset(); render(); scrollTopCenter();}
-  else if(a==="today"){sel=todayClamp; render(); scrollTopCenter();}
-  else if(a==="goto"){sel=+b.getAttribute("data-i"); if(mode()==="left"||mode()==="right"){ try{localStorage.setItem("offer90.nav",JSON.stringify({i:sel,t:Date.now()}))}catch(x){} } render(); scrollTopCenter();}
+  if(a==="prev"&&sel>0){sel--; broadcastSel(); render(); scrollTopCenter();}
+  else if(a==="next"&&sel<N-1){sel++; broadcastSel(); render(); scrollTopCenter();}
+  else if(a==="today"){sel=todayClamp; broadcastSel(); render(); scrollTopCenter();}
+  else if(a==="goto"){sel=+b.getAttribute("data-i"); broadcastSel(); render(); scrollTopCenter();}
   else if(a==="quote"){quoteShift++; render();}
   else if(a==="theme"){ theme = theme==="auto"?"light":theme==="light"?"dark":"auto"; try{localStorage.setItem(THEMEKEY,theme)}catch(x){} applyTheme(theme); render(); }
   else if(a==="reveal"){ revealed[day.date+b.getAttribute("data-id")]=1; render(); }
@@ -703,7 +721,7 @@ function fitLayout(){
   var root=document.documentElement, w=window.innerWidth, touch=false;
   try{ touch = window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(any-pointer: fine)").matches; }catch(x){}
   root.classList.remove("mid","stack","stack1","single"); root.style.zoom="";
-  if(mode()!=="full"){                       /* #left / #today / #right: one column, never scaled */
+  if(mode()!=="full" && !half()){            /* #left / #today / #right: one column, never scaled */
     root.classList.add("single"); if(w<=720) root.classList.add("stack1"); return;
   }
   if(touch && w<861){ root.classList.add("stack"); if(w<=720) root.classList.add("stack1"); return; }
