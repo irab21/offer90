@@ -66,6 +66,9 @@ html.mid .app[data-mode="full"] .banner .txt{padding:18px 18px; padding-top:44px
 html.stack .app[data-mode="full"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 html.stack .app[data-mode="full"] .center{grid-column:1 / -1; order:-1}
 html.stack1 .app[data-mode="full"]{grid-template-columns:minmax(0,1fr)}
+/* Single-widget embeds (#left / #today / #right) sit in narrow Notion columns: tighter edges */
+html.single body{padding:6px 6px 10px; background-image:none}
+html.single .app{gap:14px}
 
 /* Cards */
 .card{background:var(--card); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow); padding:16px 18px; position:relative; min-width:0}
@@ -350,7 +353,13 @@ function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(S)); storageOK=true; lastSaved=new Date(); }
   catch(e){ storageOK=false; }
 }
-window.addEventListener("storage", function(e){ if(e.key===KEY){ S=load(); render(); } });
+window.addEventListener("storage", function(e){
+  if(e.key===KEY){ S=load(); render(); }
+  else if(e.key==="offer90.nav" && e.newValue){        /* a day clicked in the #left/#right embed opens it in #today */
+    try{ var nv=JSON.parse(e.newValue); if(nv.i>=0 && nv.i<N && (mode()==="today"||mode()==="full")){ sel=nv.i; render(); } }catch(x){}
+  }
+  else if(e.key==="offer90.theme"){ theme=e.newValue||"auto"; applyTheme(theme); render(); }
+});
 
 var THEMEKEY="offer90.theme";
 function applyTheme(t){ if(t==="light"||t==="dark") document.documentElement.setAttribute("data-theme",t); else document.documentElement.removeAttribute("data-theme"); }
@@ -608,6 +617,7 @@ function renderRight(st){
   var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
   h+='<section class="card backup"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
      '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
+     '<p class="note" style="margin-top:4px">Dashboard version 5</p>'+
      '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
      '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
      (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
@@ -646,7 +656,7 @@ document.addEventListener("click", function(e){
   if(a==="prev"&&sel>0){sel--; revealedReset(); render(); scrollTopCenter();}
   else if(a==="next"&&sel<N-1){sel++; revealedReset(); render(); scrollTopCenter();}
   else if(a==="today"){sel=todayClamp; render(); scrollTopCenter();}
-  else if(a==="goto"){sel=+b.getAttribute("data-i"); if(mode()!=="full"&&mode()!=="today"){} render(); scrollTopCenter();}
+  else if(a==="goto"){sel=+b.getAttribute("data-i"); if(mode()==="left"||mode()==="right"){ try{localStorage.setItem("offer90.nav",JSON.stringify({i:sel,t:Date.now()}))}catch(x){} } render(); scrollTopCenter();}
   else if(a==="quote"){quoteShift++; render();}
   else if(a==="theme"){ theme = theme==="auto"?"light":theme==="light"?"dark":"auto"; try{localStorage.setItem(THEMEKEY,theme)}catch(x){} applyTheme(theme); render(); }
   else if(a==="reveal"){ revealed[day.date+b.getAttribute("data-id")]=1; render(); }
@@ -692,14 +702,17 @@ var DESIGN_MIN=880;
 function fitLayout(){
   var root=document.documentElement, w=window.innerWidth, touch=false;
   try{ touch = window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(any-pointer: fine)").matches; }catch(x){}
-  root.classList.remove("mid","stack","stack1"); root.style.zoom="";
+  root.classList.remove("mid","stack","stack1","single"); root.style.zoom="";
+  if(mode()!=="full"){                       /* #left / #today / #right: one column, never scaled */
+    root.classList.add("single"); if(w<=720) root.classList.add("stack1"); return;
+  }
   if(touch && w<861){ root.classList.add("stack"); if(w<=720) root.classList.add("stack1"); return; }
   if(w<1181) root.classList.add("mid");
   if(w<DESIGN_MIN) root.style.zoom=String(Math.max(0.45, w/DESIGN_MIN));
 }
 fitLayout();
 var fitTimer=null; window.addEventListener("resize", function(){ clearTimeout(fitTimer); fitTimer=setTimeout(fitLayout,60); });
-window.addEventListener("hashchange", render);
+window.addEventListener("hashchange", function(){ fitLayout(); render(); });
 render();
 })();
 </script>
