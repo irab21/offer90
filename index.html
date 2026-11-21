@@ -50,7 +50,20 @@ img{max-width:100%; display:block}
 .app[data-mode="left"] .center,.app[data-mode="left"] .rail.right,
 .app[data-mode="right"] .center,.app[data-mode="right"] .rail.left,
 .app[data-mode="today"] .rail{display:none}
-@media (max-width:1180px){
+/* Medium widths (e.g. inside a Notion embed): keep 3 columns, slimmer side rails */
+@media (max-width:1180px) and (min-width:861px){
+  body{padding-left:10px; padding-right:10px}
+  .app[data-mode="full"]{grid-template-columns:minmax(185px,21%) minmax(0,1fr) minmax(195px,23%); gap:14px}
+  .app[data-mode="full"] .card{padding:14px 14px}
+  .app[data-mode="full"] .willow{margin:-14px -14px 12px}
+  .app[data-mode="full"] .ring-wrap{flex-wrap:wrap; justify-content:center}
+  .app[data-mode="full"] .bars{flex-basis:100%}
+  .app[data-mode="full"] .crest .day-big{font-size:50.5px}
+  .app[data-mode="full"] .streak-nums{gap:12px}
+  .app[data-mode="full"] .streak-nums b{font-size:28.5px}
+  .app[data-mode="full"] .banner .txt{padding:18px 18px; padding-top:44px}
+}
+@media (max-width:860px){
   .app[data-mode="full"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .app[data-mode="full"] .center{grid-column:1 / -1; order:-1}
 }
@@ -672,7 +685,7 @@ document.addEventListener("click", function(e){
   else if(a==="restore-no"){ confirmRestore=null; backupMsg=""; render(); }
 });
 function revealedReset(){}
-function scrollTopCenter(){ if(mode()==="full" && window.innerWidth>1180) return; var c=document.getElementById("center"); if(c && mode()!=="left" && mode()!=="right") c.scrollIntoView({block:"start"}); }
+function scrollTopCenter(){ if(mode()==="full" && window.innerWidth>860) return; var c=document.getElementById("center"); if(c && mode()!=="left" && mode()!=="right") c.scrollIntoView({block:"start"}); }
 window.addEventListener("hashchange", render);
 render();
 })();
