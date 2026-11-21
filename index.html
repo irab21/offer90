@@ -430,20 +430,21 @@ var QBYID={}; D.drill.forEach(function(q){QBYID[q.id]=q});
 
 /* ---------- view state ---------- */
 var sel = todayClamp, revealed={}, quoteShift=0, backupMsg="", confirmRestore=null;
-function mode(){ var h=(location.hash||"").replace("#",""); return (h==="left"||h==="right"||h==="today"||h==="top"||h==="bottom")?h:"full"; }
-function half(){ var m=mode(); return (m==="top"||m==="bottom")?m:null; }   /* #top / #bottom: full 3-column layout, split in two rows for Notion */
+function mode(){ var h=(location.hash||"").replace("#",""); return /^(left|right|today|part[123])$/.test(h)?h:"full"; }
+function part(){ var m=/^part([123])$/.exec(mode()); return m?+m[1]:0; }   /* #part1..#part3: full 3-column layout, split into rows for Notion */
 function broadcastSel(){ try{ localStorage.setItem("offer90.nav", JSON.stringify({i:sel, t:Date.now()})); }catch(x){} }
-/* Which cards belong to the top half: first 3 on the left, first 2 on the right, centre up to the 2nd task block */
-function applyHalf(h){
-  var top=(h==="top");
-  [["left",3],["right",2]].forEach(function(c){
-    var kids=document.getElementById(c[0]).children;
-    for(var i=0;i<kids.length;i++) kids[i].style.display = ((i<c[1])===top) ? "" : "none";
-  });
-  var cen=document.getElementById("center"), kids=cen.children, cut=0, blocks=0;
-  for(var j=0;j<kids.length;j++){ if(kids[j].classList.contains("block")){ blocks++; cut=j+1; if(blocks===2) break; } }
-  for(var k=0;k<kids.length;k++) kids[k].style.display = ((k<cut)===top) ? "" : "none";
-  if(!top){ var day=D.days[sel];
+/* Which row each card belongs to (see SETUP.md):
+   left   1: date, progress        2: streak & harvest           3: quote, the road
+   centre 1: banner → first block  2: other blocks + outputs      3: checkpoints, check-in
+   right  1: field report          2: funnel, topic strength      3: quote, backup, vase */
+function applyPart(p){
+  function show(kids, partOf){ for(var i=0;i<kids.length;i++) kids[i].style.display = (partOf(kids[i],i)===p) ? "" : "none"; }
+  show(document.getElementById("left").children,  function(k,i){ return i<2?1 : i<3?2 : 3; });
+  show(document.getElementById("right").children, function(k,i){ return i<1?1 : i<3?2 : 3; });
+  var cen=document.getElementById("center"), kids=cen.children, firstBlock=-1;
+  for(var j=0;j<kids.length;j++){ if(kids[j].classList.contains("block")){ firstBlock=j; break; } }
+  show(kids, function(k,i){ if(i<=firstBlock) return 1; if(k.classList.contains("block")||k.classList.contains("outputs")) return 2; return 3; });
+  if(p>1){ var day=D.days[sel];
     cen.insertAdjacentHTML("afterbegin", '<div class="cont"><span class="eyebrow">Day '+day.n+' · '+esc(longDate(day))+' · continued</span></div>'); }
 }
 
@@ -571,7 +572,7 @@ function renderCenter(){
   var outs=D.outputs[day.week]||[];
   if(outs.length){
     var sun=D.days[day.week*7-1];
-    h+='<section class="card"><h3>This week’s outputs</h3><p class="small muted" style="margin:-4px 0 6px">Due by Sunday '+esc(nice(sun.date))+'. These are what you can show an interviewer.</p>';
+    h+='<section class="card outputs"><h3>This week’s outputs</h3><p class="small muted" style="margin:-4px 0 6px">Due by Sunday '+esc(nice(sun.date))+'. These are what you can show an interviewer.</p>';
     outs.forEach(function(t,i){ var k="w"+day.week+":o"+i, on=ticked(k), id="t_"+k.replace(":","_");
       h+='<div class="check'+(on?" on":"")+'"><input type="checkbox" class="tick sm" id="'+id+'" data-act="tick" data-k="'+k+'" '+(on?"checked":"")+'><label for="'+id+'">'+esc(t)+'</label></div>'; });
     h+='</section>';
@@ -634,7 +635,7 @@ function renderRight(st){
   var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
   h+='<section class="card backup"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
      '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
-     '<p class="note" style="margin-top:4px">Dashboard version 6</p>'+
+     '<p class="note" style="margin-top:4px">Dashboard version 7</p>'+
      '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
      '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
      (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
@@ -645,14 +646,14 @@ function renderRight(st){
 
 /* ---------- render ---------- */
 function render(){
-  var st=stats(), hm=half(), m=hm?"full":mode();
+  var st=stats(), pt=part(), m=pt?"full":mode();
   document.getElementById("app").setAttribute("data-mode", m);
   var keepScroll = window.scrollY, focusId = document.activeElement && document.activeElement.id;
   if(m==="full"||m==="left") document.getElementById("left").innerHTML=renderLeft(st);
   if(m==="full"||m==="today") document.getElementById("center").innerHTML=renderCenter();
   if(m==="full"||m==="right") document.getElementById("right").innerHTML=renderRight(st);
-  if(hm) applyHalf(hm);
-  document.getElementById("credits").hidden = !(mode()==="full" || hm==="bottom");
+  if(pt) applyPart(pt);
+  document.getElementById("credits").hidden = !(mode()==="full" || pt===3);
   if(focusId){ var el=document.getElementById(focusId); if(el && el.id!=="note" && el.id!=="bk") el.focus({preventScroll:true}); }
   window.scrollTo(0, keepScroll);
 }
@@ -721,7 +722,7 @@ function fitLayout(){
   var root=document.documentElement, w=window.innerWidth, touch=false;
   try{ touch = window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(any-pointer: fine)").matches; }catch(x){}
   root.classList.remove("mid","stack","stack1","single"); root.style.zoom="";
-  if(mode()!=="full" && !half()){            /* #left / #today / #right: one column, never scaled */
+  if(mode()!=="full" && !part()){            /* #left / #today / #right: one column, never scaled */
     root.classList.add("single"); if(w<=720) root.classList.add("stack1"); return;
   }
   if(touch && w<861){ root.classList.add("stack"); if(w<=720) root.classList.add("stack1"); return; }
