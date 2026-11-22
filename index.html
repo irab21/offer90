@@ -576,7 +576,7 @@ function renderLeft(st){
   h+='<section class="card"><h3>Streak &amp; harvest</h3><div class="streak-nums"><div><b class="tnum">'+st.streak+'</b><span class="eyebrow">day streak</span></div><div><b class="tnum">'+st.best+'</b><span class="eyebrow">best</span></div><div><b class="tnum">'+st.missedTotal+'</b><span class="eyebrow">missed</span></div></div>'+g+
      '<div class="legend"><span><i style="background:var(--olive);border-color:var(--olive)"></i>All blocks</span><span><i style="background:var(--ochre);border-color:var(--ochre)"></i>Some</span><span><i style="background:var(--alert-soft);border-color:var(--rust)"></i>Missed</span></div>'+
      '<p class="note">A day counts for the streak when its main block (Deep work, Build or Mock) is ticked. Click any square to open that day.</p></section>';
-  h+=quoteCard(0,"mignon-flowers.jpg","Abraham Mignon, Still Life with Flowers and a Watch",230,"50% 40%");
+  h+=quoteCard(0,"mignon-flowers.jpg","Abraham Mignon, Still Life with Flowers and a Watch",110,"50% 38%");
   // phases
   var ph='';
   PHASES.forEach(function(p){
@@ -704,7 +704,7 @@ function renderRight(st){
   var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
   h+='<section class="card backup"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
      '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
-     '<p class="note" style="margin-top:4px">Dashboard version 10</p>'+
+     '<p class="note" style="margin-top:4px">Dashboard version 11</p>'+
      '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
      '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
      (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
