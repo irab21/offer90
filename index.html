@@ -288,7 +288,7 @@ html.stack1 .banner .txt{padding-top:50px} html.stack1 .banner h1{font-size:36.5
   <main class="center" id="center"></main>
   <aside class="rail right" id="right"></aside>
 </div>
-<footer class="credits" id="credits">Art: Rembrandt, <i>The Night Watch</i>, 1642 (Rijksmuseum) · Abraham Mignon, <i>Still Life with Flowers and a Watch</i> (Rijksmuseum) · Frederic Edwin Church, <i>The Parthenon</i>, 1871 (The Met) · William Morris, <i>Willow</i> pattern · Vincent van Gogh, <i>Oleanders</i>, 1888 (The Met) · Pieter Claesz, <i>Vanitas Still Life with the Spinario</i>, 1628 (Rijksmuseum) · Hendrick Avercamp, <i>Winter Landscape with Ice Skaters</i>, c. 1608 (Rijksmuseum) · Johannes Vermeer, <i>The Milkmaid</i>, c. 1660 (Rijksmuseum) · Paul Cézanne, <i>Still Life with Apples and a Pot of Primroses</i>, c. 1890 (The Met) · Joseph H. Hidley, <i>Poestenkill, New York</i> (The Met). Public-domain works.</footer>
+<footer class="credits" id="credits">Art: Rembrandt, <i>The Night Watch</i>, 1642 (Rijksmuseum) · Abraham Mignon, <i>Still Life with Flowers and a Watch</i> (Rijksmuseum) · Frederic Edwin Church, <i>The Parthenon</i>, 1871 (The Met) · William Morris, <i>Willow</i> pattern · Vincent van Gogh, <i>Oleanders</i>, 1888 (The Met) · Pieter Claesz, <i>Vanitas Still Life with the Spinario</i>, 1628 (Rijksmuseum) · Hendrick Avercamp, <i>Winter Landscape with Ice Skaters</i>, c. 1608 (Rijksmuseum) · Johannes Vermeer, <i>The Milkmaid</i>, c. 1660 (Rijksmuseum) · Paul Cézanne, <i>Still Life with Apples and a Pot of Primroses</i>, c. 1890 (The Met) · Joseph H. Hidley, <i>Poestenkill, New York</i> (The Met) · Pieter Saenredam, <i>Interior of the St Odulphuskerk in Assendelft</i>, 1649 (Rijksmuseum). Public-domain works.</footer>
 <script src="data.js"></script>
 <script>
 (function(){
@@ -619,7 +619,7 @@ function backupCard(){
   var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
   h+='<section class="card backup np"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
      '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
-     '<p class="note" style="margin-top:4px">Dashboard version 14</p>'+
+     '<p class="note" style="margin-top:4px">Dashboard version 15</p>'+
      '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
      '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
      (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
@@ -739,6 +739,7 @@ function renderRight(st){
     th+='<div class="topic"><span>'+esc(t.topic)+'</span><span>'+(t.avg===null?"not rated":t.avg.toFixed(1)+" / 5")+' · '+t.rated+'/'+t.n+'</span>'+bar(t.avg===null?0:t.avg/5,cls)+'</div>';
   });
   h+='<section class="card"><h3>Topic strength</h3>'+(th||'<p class="small muted">Topics appear as the plan unlocks them.</p>')+'<p class="note">Average of your recall ratings in each unlocked topic, and how many of its questions you have rated.</p></section>';
+  h+=fillPic(3,"saenredam-church.jpg","Pieter Saenredam, Interior of the St Odulphuskerk in Assendelft","50% 50%");
   h+=quoteCard(4,"van-gogh-oleanders.jpg","Vincent van Gogh, Oleanders",230,"50% 35%","np");
   h+=quoteCard(1,"morris-willow.jpg","William Morris, Willow pattern",90,"50% 50%","np");
   h+=fillPic(4,"hidley-poestenkill.jpg","Joseph H. Hidley, Poestenkill, New York","50% 40%");
