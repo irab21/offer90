@@ -472,7 +472,7 @@ function broadcastSel(){ try{ localStorage.setItem("offer90.nav", JSON.stringify
    right  1: field report          2: funnel, topic strength      3: quote, backup, vase */
 function applyPart(p){
   function show(kids, partOf){ for(var i=0,n=0;i<kids.length;i++){ var k=kids[i], dp=k.getAttribute("data-p"); k.style.display = ((dp? +dp : partOf(k,n++))===p) ? "" : "none"; } }
-  show(document.getElementById("left").children,  function(k,i){ return k.classList.contains("np")?4 : i<2?1 : i<4?2 : 3; });
+  show(document.getElementById("left").children,  function(k,i){ return k.classList.contains("np")?4 : i<2?1 : i<3?2 : 3; });
   show(document.getElementById("right").children, function(k,i){ return k.classList.contains("np")?4 : i<1?1 : i<2?2 : 3; });
   var cen=document.getElementById("center"), kids=cen.children, firstBlock=-1;
   for(var j=0;j<kids.length;j++){ if(kids[j].classList.contains("block")){ firstBlock=j; break; } }
@@ -582,7 +582,6 @@ function renderLeft(st){
   h+='<section class="card"><h3>Streak &amp; harvest</h3><div class="streak-nums"><div><b class="tnum">'+st.streak+'</b><span class="eyebrow">day streak</span></div><div><b class="tnum">'+st.best+'</b><span class="eyebrow">best</span></div><div><b class="tnum">'+st.missedTotal+'</b><span class="eyebrow">missed</span></div></div>'+g+
      '<div class="legend"><span><i style="background:var(--olive);border-color:var(--olive)"></i>All blocks</span><span><i style="background:var(--ochre);border-color:var(--ochre)"></i>Some</span><span><i style="background:var(--alert-soft);border-color:var(--rust)"></i>Missed</span></div>'+
      '<p class="note">A day counts for the streak when its main block (Deep work, Build or Mock) is ticked. Click any square to open that day.</p></section>';
-  h+='<section class="card pic"><div class="frame"><img src="mignon-flowers.jpg" alt="Abraham Mignon, Still Life with Flowers and a Watch" style="height:230px;object-position:50% 40%" loading="lazy"></div></section>';
   // phases
   var ph='';
   PHASES.forEach(function(p){
@@ -619,7 +618,7 @@ function backupCard(){
   var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
   h+='<section class="card backup np"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
      '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
-     '<p class="note" style="margin-top:4px">Dashboard version 15</p>'+
+     '<p class="note" style="margin-top:4px">Dashboard version 17</p>'+
      '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
      '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
      (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
@@ -733,6 +732,7 @@ function renderRight(st){
      row("Referral messages","target to date "+st.msgsDue,st.msgs)+row("Applications","target to date "+st.appsDue+" · plan 78",st.apps)+
      row("Screens",rate,F.screens,"screens")+row("Technical rounds","",F.technical,"technical")+row("Onsites","target 2+ by Day 77",F.onsite,"onsite")+row("Offers","goal: 1+ at 40 LPA",F.offers,"offers")+
      '<p class="note">Log messages and applications in each day’s Job hunt block. Add a screen, round or offer here the day it happens.</p></section>';
+  h+='<section class="card pic" data-p="2"><div class="frame"><img src="mignon-flowers.jpg" alt="Abraham Mignon, Still Life with Flowers and a Watch" style="height:230px;object-position:50% 40%" loading="lazy"></div></section>';
   var tops=topicStats(), th='';
   tops.forEach(function(t){
     var cls = t.avg===null?"":t.avg<3?"rust":t.avg<4?"ochre":"";
