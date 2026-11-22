@@ -69,10 +69,21 @@ html.stack1 .app[data-mode="full"]{grid-template-columns:minmax(0,1fr)}
 /* Single-widget embeds (#left / #today / #right) sit in narrow Notion columns: tighter edges */
 html.single body{padding:6px 6px 10px; background-image:none}
 html.single .app{gap:14px}
-html.p4 body{padding:10px 16px} html.p4 footer.credits{margin:0 auto}
+html.p5 body{padding:10px 16px} html.p5 footer.credits{margin:0 auto}
 
 .cont{padding:2px 2px 0}
 .keys ul{margin:10px 0 0; padding:0; list-style:none}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+.notebook textarea.lined{display:block; margin-top:12px; min-height:470px; resize:vertical; font:400 17.5px/30px var(--body); padding:6px 14px 6px 48px;
+  background-color:var(--parchment); background-attachment:local;
+  background-image:linear-gradient(90deg, transparent 36px, rgba(162,78,30,.45) 36px, rgba(162,78,30,.45) 37px, transparent 37px),
+                   linear-gradient(transparent 29px, var(--rule) 29px);
+  background-size:100% 100%, 100% 30px; background-position:0 0, 0 6px}
+.nb-foot{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:8px}
+.page{display:block; width:100%; text-align:left; background:none; border:0; border-top:1px dashed var(--rule); padding:8px 0; color:var(--ink)}
+.page:first-of-type{border-top:0}
+.page b{display:block; font:700 11.5px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--rust)}
+.page span{font-size:15.5px; color:var(--ink-2)}
 .keys li{position:relative; padding:7px 0 7px 22px; border-top:1px dashed var(--rule); line-height:1.4}
 .keys li:first-child{border-top:0}
 .keys li::before{content:"❦"; position:absolute; left:0; top:6px; color:var(--olive); font-size:15px}
@@ -271,7 +282,7 @@ html.stack1 .banner .txt{padding-top:50px} html.stack1 .banner h1{font-size:36.5
   <main class="center" id="center"></main>
   <aside class="rail right" id="right"></aside>
 </div>
-<footer class="credits" id="credits">Art: Rembrandt, <i>The Night Watch</i>, 1642 (Rijksmuseum) · Abraham Mignon, <i>Still Life with Flowers and a Watch</i> (Rijksmuseum) · Frederic Edwin Church, <i>The Parthenon</i>, 1871 (The Met) · William Morris, <i>Willow</i> pattern · Vincent van Gogh, <i>Oleanders</i>, 1888 (The Met). Public-domain works.</footer>
+<footer class="credits" id="credits">Art: Rembrandt, <i>The Night Watch</i>, 1642 (Rijksmuseum) · Abraham Mignon, <i>Still Life with Flowers and a Watch</i> (Rijksmuseum) · Frederic Edwin Church, <i>The Parthenon</i>, 1871 (The Met) · William Morris, <i>Willow</i> pattern · Vincent van Gogh, <i>Oleanders</i>, 1888 (The Met) · Pieter Claesz, <i>Vanitas Still Life with the Spinario</i>, 1628 (Rijksmuseum). Public-domain works.</footer>
 <script src="data.js"></script>
 <script>
 (function(){
@@ -339,7 +350,14 @@ var QUOTES=[
   ["Small ticks, every day. The offer is the sum.","Field note"],
   ["Ship the milestone, not the perfect version.","Field note"],
   ["A referral opens the door an application only knocks on.","Field note"],
-  ["Rest is part of the plan, not a break from it.","Field note"]
+  ["Rest is part of the plan, not a break from it.","Field note"],
+  ["The palest ink is better than the best memory.","Chinese proverb"],
+  ["Well begun is half done.","Aristotle"],
+  ["Knowledge is power.","Francis Bacon"],
+  ["Energy and persistence conquer all things.","Benjamin Franklin"],
+  ["Rome wasn't built in a day.","Proverb"],
+  ["Write it down tonight; say it cold tomorrow.","Field note"],
+  ["Today's notes are tomorrow's interview answers.","Field note"]
 ];
 
 /* ---------- state (this browser) ---------- */
@@ -438,9 +456,9 @@ var sel = todayClamp, revealed={}, quoteShift=0, backupMsg="", confirmRestore=nu
 /* The view comes from ?view=part2 (survives Notion embeds) or, as a fallback, from #part2 */
 function mode(){
   var q=/[?&]view=([a-z0-9]+)/i.exec(location.search), h=(q?q[1]:(location.hash||"").replace("#","")).toLowerCase();
-  return /^(left|right|today|part[1234])$/.test(h)?h:"full";
+  return /^(left|right|today|part[1-5])$/.test(h)?h:"full";
 }
-function part(){ var m=/^part([1234])$/.exec(mode()); return m?+m[1]:0; }   /* #part1..#part3: full 3-column layout, split into rows for Notion */
+function part(){ var m=/^part([1-5])$/.exec(mode()); return m?+m[1]:0; }   /* #part1..#part3: full 3-column layout, split into rows for Notion */
 function broadcastSel(){ try{ localStorage.setItem("offer90.nav", JSON.stringify({i:sel, t:Date.now()})); }catch(x){} }
 /* Which row each card belongs to (see SETUP.md):
    left   1: date, progress        2: streak & harvest           3: quote, the road
@@ -448,12 +466,12 @@ function broadcastSel(){ try{ localStorage.setItem("offer90.nav", JSON.stringify
    right  1: field report          2: funnel, topic strength      3: quote, backup, vase */
 function applyPart(p){
   function show(kids, partOf){ for(var i=0;i<kids.length;i++) kids[i].style.display = (partOf(kids[i],i)===p) ? "" : "none"; }
-  show(document.getElementById("left").children,  function(k,i){ return i<2?1 : i<3?2 : 3; });
-  show(document.getElementById("right").children, function(k,i){ return i<1?1 : i<3?2 : 3; });
+  show(document.getElementById("left").children,  function(k,i){ return k.classList.contains("np")?4 : i<2?1 : i<4?2 : 3; });
+  show(document.getElementById("right").children, function(k,i){ return k.classList.contains("np")?4 : i<1?1 : i<3?2 : 3; });
   var cen=document.getElementById("center"), kids=cen.children, firstBlock=-1;
   for(var j=0;j<kids.length;j++){ if(kids[j].classList.contains("block")){ firstBlock=j; break; } }
-  show(kids, function(k,i){ if(i<=firstBlock) return 1; if(k.classList.contains("block")||k.classList.contains("outputs")) return 2; return 3; });
-  if(p>1){ var day=D.days[sel];
+  show(kids, function(k,i){ if(k.classList.contains("np")) return 4; if(i<=firstBlock) return 1; if(k.classList.contains("block")||k.classList.contains("outputs")) return 2; return 3; });
+  if(p===2||p===3){ var day=D.days[sel];
     cen.insertAdjacentHTML("afterbegin", '<div class="cont"><span class="eyebrow">Day '+day.n+' · '+esc(longDate(day))+' · continued</span></div>'); }
 }
 
@@ -567,13 +585,30 @@ function renderLeft(st){
     ph+='<div class="phase'+(now?" now":"")+'"><b>'+esc(p.name)+'</b><span class="wks">W'+p.from+(p.to!==p.from?"–"+p.to:"")+'</span>'+bar(d/keys.length)+'</div>';
   });
   h+='<section class="card"><h3>The road</h3>'+ph+'</section>';
+  h+=quoteCard(3,"claesz-vanitas.jpg","Pieter Claesz, Vanitas Still Life with the Spinario",230,"50% 70%","np");
   return h;
 }
-function quoteCard(side,img,alt,hgt,pos){
+function quoteCard(side,img,alt,hgt,pos,cls){
   var base = Math.max(0,todayIdx);
-  var q=QUOTES[((base*3+side+quoteShift*3)%QUOTES.length+QUOTES.length)%QUOTES.length];
-  return '<section class="card quote"><div class="frame"><img src="'+img+'" alt="'+esc(alt)+'" style="height:'+hgt+'px;object-position:'+pos+'" loading="lazy"></div>'+
+  var q=QUOTES[((base*5+side+quoteShift*5)%QUOTES.length+QUOTES.length)%QUOTES.length];
+  return '<section class="card quote'+(cls?" "+cls:"")+'"><div class="frame"><img src="'+img+'" alt="'+esc(alt)+'" style="height:'+hgt+'px;object-position:'+pos+'" loading="lazy"></div>'+
     '<blockquote>“'+esc(q[0])+'”</blockquote><div class="row"><cite>'+esc(q[1])+'</cite><button class="linkish" data-act="quote">Another</button></div></section>';
+}
+
+/* ---------- notebook (one page per day; stored in S.log[date].note) ---------- */
+function words(t){ return ((t||"").trim().match(/\S+/g)||[]).length; }
+function notebookCard(day, lg){
+  var prev=Object.keys(S.log).filter(function(d){ return d<day.date && S.log[d].note && S.log[d].note.trim() && idxOf(d)>=0 && idxOf(d)<N; }).sort().reverse().slice(0,4);
+  var h='<section class="card notebook np"><h3>Notebook</h3><div class="eyebrow">Day '+day.n+' · '+esc(longDate(day))+'</div>'+
+    '<label class="sr" for="note">Notes for Day '+day.n+'</label>'+
+    '<textarea id="note" class="lined" data-act="note" spellcheck="true" placeholder="What you learned today, mistakes to fix, questions to revisit, what slipped and what helped. On Sundays: next week’s three priorities.">'+esc(lg.note||"")+'</textarea>'+
+    '<div class="nb-foot"><span class="saved"><i></i><span id="nbstat">Saves as you type</span></span><span class="eyebrow tnum" id="nbwc">'+words(lg.note)+' words</span></div>';
+  if(prev.length){
+    h+='<div class="eyebrow" style="margin-top:16px">Earlier pages</div>';
+    prev.forEach(function(d){ var t=S.log[d].note.trim().replace(/\s+/g," ");
+      h+='<button class="page" data-act="goto" data-i="'+idxOf(d)+'"><b>Day '+(idxOf(d)+1)+' · '+esc(nice(d))+'</b><span>'+esc(t.length>110?t.slice(0,110)+"…":t)+'</span></button>'; });
+  }
+  return h+'</section>';
 }
 
 /* ---------- render: centre ---------- */
@@ -620,8 +655,9 @@ function renderCenter(){
   var lg=S.log[day.date]||{};
   var en=[[1,"Drained"],[2,"Low"],[3,"Steady"],[4,"Good"],[5,"Sharp"]].map(function(e){return '<button data-act="energy" data-v="'+e[0]+'" aria-pressed="'+(lg.energy===e[0])+'">'+e[0]+' · '+e[1]+'</button>'}).join("");
   h+='<section class="card"><h3>Evening check-in</h3><div class="eyebrow">Energy</div><div class="energy">'+en+'</div>'+
-     '<label class="eyebrow" for="note">What slipped, what helped</label><textarea id="note" data-act="note" placeholder="One or two lines. On Sundays, write next week’s three priorities here.">'+esc(lg.note||"")+'</textarea></section>';
+     '<p class="note" style="margin:0">Write the day’s notes in the Notebook at the bottom of the page.</p></section>';
   h+=keyIdeasCard(day.week);
+  h+=notebookCard(day, lg);
   return h;
 }
 function renderDrill(day){
@@ -668,12 +704,12 @@ function renderRight(st){
   var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
   h+='<section class="card backup"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
      '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
-     '<p class="note" style="margin-top:4px">Dashboard version 9</p>'+
+     '<p class="note" style="margin-top:4px">Dashboard version 10</p>'+
      '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
      '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
      (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
      (confirmRestore?'<div class="confirm">Replace all current progress with this backup? <div class="row"><button class="btn primary" data-act="restore-yes">Replace</button><button class="btn" data-act="restore-no">Cancel</button></div></div>':'')+'</section>';
-  h+=quoteCard(2,"van-gogh-oleanders.jpg","Vincent van Gogh, Oleanders",230,"50% 35%");
+  h+=quoteCard(4,"van-gogh-oleanders.jpg","Vincent van Gogh, Oleanders",230,"50% 35%","np");
   return h;
 }
 
@@ -686,9 +722,9 @@ function render(){
   if(m==="full"||m==="today") document.getElementById("center").innerHTML=renderCenter();
   if(m==="full"||m==="right") document.getElementById("right").innerHTML=renderRight(st);
   if(pt) applyPart(pt);
-  document.getElementById("app").style.display = (pt===4) ? "none" : "";
-  document.getElementById("credits").hidden = !(mode()==="full" || pt===4);
-  document.documentElement.classList.toggle("p4", pt===4);
+  document.getElementById("app").style.display = (pt===5) ? "none" : "";
+  document.getElementById("credits").hidden = !(mode()==="full" || pt===5);
+  document.documentElement.classList.toggle("p5", pt===5);
   if(focusId){ var el=document.getElementById(focusId); if(el && el.id!=="note" && el.id!=="bk") el.focus({preventScroll:true}); }
   window.scrollTo(0, keepScroll);
 }
@@ -702,7 +738,10 @@ var noteTimer=null;
 document.addEventListener("input", function(e){
   var t=e.target; if(t.getAttribute("data-act")!=="note") return;
   var day=D.days[sel]; clearTimeout(noteTimer);
-  noteTimer=setTimeout(function(){ var lg=S.log[day.date]||(S.log[day.date]={}); lg.note=t.value.slice(0,2000); save(); }, 400);
+  var wc=document.getElementById("nbwc"), st=document.getElementById("nbstat");
+  if(wc) wc.textContent=words(t.value)+" words"; if(st) st.textContent="Saving…";
+  noteTimer=setTimeout(function(){ var lg=S.log[day.date]||(S.log[day.date]={}); lg.note=t.value.slice(0,20000); save();
+    if(st) st.textContent = storageOK ? "Saved" : "Not saved: this browser blocks storage"; }, 400);
 });
 document.addEventListener("click", function(e){
   var b=e.target.closest("[data-act]"); if(!b || b.tagName==="INPUT" || b.tagName==="TEXTAREA") return;
