@@ -72,6 +72,12 @@ html.single .app{gap:14px}
 html.p5 body{padding:10px 16px} html.p5 footer.credits{margin:0 auto}
 
 .cont{padding:2px 2px 0}
+.fill{display:none}
+html.parts .app{align-items:stretch}
+html.parts .fill{display:block; flex:1 1 0; min-height:0; position:relative; margin-top:-18px}
+.fill > .card{position:absolute; left:0; right:0; top:18px; bottom:0; padding:12px; display:flex}
+.fill .frame{flex:1; display:flex; min-height:0}
+.fill img{width:100%; height:100%; object-fit:cover; filter:saturate(.92) sepia(.08)}
 .keys ul{margin:10px 0 0; padding:0; list-style:none}
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 .notebook textarea.lined{display:block; margin-top:12px; min-height:470px; resize:vertical; font:400 17.5px/30px var(--body); padding:6px 14px 6px 48px;
@@ -258,8 +264,8 @@ textarea{width:100%; min-height:70px; resize:vertical; border:1px solid var(--ru
 .mini b{font:400 22.5px var(--display); min-width:26px; text-align:center}
 
 /* Topics */
-.topic{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 8px; padding:6px 0; font-size:15.5px}
-.topic .bar{grid-column:1 / -1; margin-top:2px; height:6px}
+.topic{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:1px 8px; padding:3px 0; font-size:15px; line-height:1.3}
+.topic .bar{grid-column:1 / -1; margin-top:1px; height:5px}
 .topic span:last-of-type{font:700 11.5px var(--mono); color:var(--ink-2)}
 
 /* Backup */
@@ -282,7 +288,7 @@ html.stack1 .banner .txt{padding-top:50px} html.stack1 .banner h1{font-size:36.5
   <main class="center" id="center"></main>
   <aside class="rail right" id="right"></aside>
 </div>
-<footer class="credits" id="credits">Art: Rembrandt, <i>The Night Watch</i>, 1642 (Rijksmuseum) · Abraham Mignon, <i>Still Life with Flowers and a Watch</i> (Rijksmuseum) · Frederic Edwin Church, <i>The Parthenon</i>, 1871 (The Met) · William Morris, <i>Willow</i> pattern · Vincent van Gogh, <i>Oleanders</i>, 1888 (The Met) · Pieter Claesz, <i>Vanitas Still Life with the Spinario</i>, 1628 (Rijksmuseum). Public-domain works.</footer>
+<footer class="credits" id="credits">Art: Rembrandt, <i>The Night Watch</i>, 1642 (Rijksmuseum) · Abraham Mignon, <i>Still Life with Flowers and a Watch</i> (Rijksmuseum) · Frederic Edwin Church, <i>The Parthenon</i>, 1871 (The Met) · William Morris, <i>Willow</i> pattern · Vincent van Gogh, <i>Oleanders</i>, 1888 (The Met) · Pieter Claesz, <i>Vanitas Still Life with the Spinario</i>, 1628 (Rijksmuseum) · Hendrick Avercamp, <i>Winter Landscape with Ice Skaters</i>, c. 1608 (Rijksmuseum) · Johannes Vermeer, <i>The Milkmaid</i>, c. 1660 (Rijksmuseum) · Paul Cézanne, <i>Still Life with Apples and a Pot of Primroses</i>, c. 1890 (The Met) · Joseph H. Hidley, <i>Poestenkill, New York</i> (The Met). Public-domain works.</footer>
 <script src="data.js"></script>
 <script>
 (function(){
@@ -465,9 +471,9 @@ function broadcastSel(){ try{ localStorage.setItem("offer90.nav", JSON.stringify
    centre 1: banner → first block  2: other blocks + outputs      3: checkpoints, check-in
    right  1: field report          2: funnel, topic strength      3: quote, backup, vase */
 function applyPart(p){
-  function show(kids, partOf){ for(var i=0;i<kids.length;i++) kids[i].style.display = (partOf(kids[i],i)===p) ? "" : "none"; }
+  function show(kids, partOf){ for(var i=0,n=0;i<kids.length;i++){ var k=kids[i], dp=k.getAttribute("data-p"); k.style.display = ((dp? +dp : partOf(k,n++))===p) ? "" : "none"; } }
   show(document.getElementById("left").children,  function(k,i){ return k.classList.contains("np")?4 : i<2?1 : i<4?2 : 3; });
-  show(document.getElementById("right").children, function(k,i){ return k.classList.contains("np")?4 : i<1?1 : i<3?2 : 3; });
+  show(document.getElementById("right").children, function(k,i){ return k.classList.contains("np")?4 : i<1?1 : i<2?2 : 3; });
   var cen=document.getElementById("center"), kids=cen.children, firstBlock=-1;
   for(var j=0;j<kids.length;j++){ if(kids[j].classList.contains("block")){ firstBlock=j; break; } }
   show(kids, function(k,i){ if(k.classList.contains("np")) return 4; if(i<=firstBlock) return 1; if(k.classList.contains("block")||k.classList.contains("outputs")) return 2; return 3; });
@@ -576,7 +582,7 @@ function renderLeft(st){
   h+='<section class="card"><h3>Streak &amp; harvest</h3><div class="streak-nums"><div><b class="tnum">'+st.streak+'</b><span class="eyebrow">day streak</span></div><div><b class="tnum">'+st.best+'</b><span class="eyebrow">best</span></div><div><b class="tnum">'+st.missedTotal+'</b><span class="eyebrow">missed</span></div></div>'+g+
      '<div class="legend"><span><i style="background:var(--olive);border-color:var(--olive)"></i>All blocks</span><span><i style="background:var(--ochre);border-color:var(--ochre)"></i>Some</span><span><i style="background:var(--alert-soft);border-color:var(--rust)"></i>Missed</span></div>'+
      '<p class="note">A day counts for the streak when its main block (Deep work, Build or Mock) is ticked. Click any square to open that day.</p></section>';
-  h+=quoteCard(0,"mignon-flowers.jpg","Abraham Mignon, Still Life with Flowers and a Watch",110,"50% 38%");
+  h+='<section class="card pic"><div class="frame"><img src="mignon-flowers.jpg" alt="Abraham Mignon, Still Life with Flowers and a Watch" style="height:230px;object-position:50% 40%" loading="lazy"></div></section>';
   // phases
   var ph='';
   PHASES.forEach(function(p){
@@ -585,7 +591,39 @@ function renderLeft(st){
     ph+='<div class="phase'+(now?" now":"")+'"><b>'+esc(p.name)+'</b><span class="wks">W'+p.from+(p.to!==p.from?"–"+p.to:"")+'</span>'+bar(d/keys.length)+'</div>';
   });
   h+='<section class="card"><h3>The road</h3>'+ph+'</section>';
+  h+=fillPic(3,"vermeer-milkmaid.jpg","Johannes Vermeer, The Milkmaid","50% 35%");
   h+=quoteCard(3,"claesz-vanitas.jpg","Pieter Claesz, Vanitas Still Life with the Spinario",230,"50% 70%","np");
+  h+=backupCard();
+  h+=fillPic(4,"cezanne-apples.jpg","Paul Cézanne, Still Life with Apples and a Pot of Primroses","40% 60%");
+  return h;
+}
+/* A painting that fills the leftover space at the bottom of a column in the #part views.
+   It never adds height: flex-basis 0, absolutely positioned card, and the 18px rail gap is cancelled. */
+function fillPic(partNo, img, alt, pos){
+  return '<div class="fill" data-p="'+partNo+'"><section class="card pic"><div class="frame"><img src="'+img+'" alt="'+esc(alt)+'" style="object-position:'+(pos||"50% 50%")+'" loading="lazy"></div></section></div>';
+}
+/* In #part1-4 the layout stretches to the embed's full height, so the fill paintings reach its bottom edge.
+   min-height only: if the embed is shorter than the content, nothing changes. */
+function sizeParts(){
+  var app=document.getElementById("app"), p=part();
+  if(p>=1 && p<=4){ var z=parseFloat(document.documentElement.style.zoom||1)||1; app.style.minHeight=Math.max(0, Math.floor(window.innerHeight/z - 49))+"px"; }
+  else app.style.minHeight="";
+}
+function checkFills(){
+  [].forEach.call(document.querySelectorAll(".fill"), function(f){
+    var c=f.firstElementChild; if(c) c.style.visibility = (f.clientHeight-18 < 90) ? "hidden" : "visible";
+  });
+}
+function backupCard(){
+  var h="";
+  var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
+  h+='<section class="card backup np"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
+     '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
+     '<p class="note" style="margin-top:4px">Dashboard version 14</p>'+
+     '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
+     '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
+     (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
+     (confirmRestore?'<div class="confirm">Replace all current progress with this backup? <div class="row"><button class="btn primary" data-act="restore-yes">Replace</button><button class="btn" data-act="restore-no">Cancel</button></div></div>':'')+'</section>';
   return h;
 }
 function quoteCard(side,img,alt,hgt,pos,cls){
@@ -687,6 +725,7 @@ function renderRight(st){
   hs.forEach(function(f){ h+='<div class="flag '+f.sev+'"><span class="stripe"></span><div><span class="sev">'+(f.sev==="alert"?"Act now":f.sev==="warn"?"Watch":"Note")+'</span><b>'+esc(f.t)+'</b><div class="d">'+esc(f.d)+'</div>'+
     (f.jump!==undefined && f.jump!==sel?'<button class="linkish" data-act="goto" data-i="'+f.jump+'">Open Day '+(f.jump+1)+'</button>':'')+'</div></div>'; });
   h+='</section>';
+  h+=fillPic(1,"avercamp-winter.jpg","Hendrick Avercamp, Winter Landscape with Ice Skaters","50% 55%");
   var F=S.funnel;
   function row(name,sub,val,k){ return '<div class="frow"><div class="nm">'+name+'<em>'+sub+'</em></div>'+(k?'<div class="mini"><button data-act="funnel" data-k="'+k+'" data-v="-1" aria-label="Remove one '+name+'">−</button><b class="tnum">'+val+'</b><button data-act="funnel" data-k="'+k+'" data-v="1" aria-label="Add one '+name+'">+</button></div>':'<div class="mini"><b class="tnum">'+val+'</b></div>')+'</div>'; }
   var rate = st.apps? (F.screens/st.apps*100).toFixed(0)+"% screen rate":"no applications yet";
@@ -700,16 +739,9 @@ function renderRight(st){
     th+='<div class="topic"><span>'+esc(t.topic)+'</span><span>'+(t.avg===null?"not rated":t.avg.toFixed(1)+" / 5")+' · '+t.rated+'/'+t.n+'</span>'+bar(t.avg===null?0:t.avg/5,cls)+'</div>';
   });
   h+='<section class="card"><h3>Topic strength</h3>'+(th||'<p class="small muted">Topics appear as the plan unlocks them.</p>')+'<p class="note">Average of your recall ratings in each unlocked topic, and how many of its questions you have rated.</p></section>';
-  h+=quoteCard(1,"morris-willow.jpg","William Morris, Willow pattern",90,"50% 50%");
-  var when = lastSaved? "saved "+pad(lastSaved.getHours())+":"+pad(lastSaved.getMinutes()) : "saved";
-  h+='<section class="card backup"><h3>Backup</h3><div class="saved'+(storageOK?"":" bad")+'"><i></i>'+(storageOK?"Progress "+when+" in this browser":"This browser blocks saving. Copy a backup code after each session.")+'</div>'+
-     '<p class="note">Ticks live in this browser only. To move to another computer, copy the code there and restore it.</p>'+
-     '<p class="note" style="margin-top:4px">Dashboard version 11</p>'+
-     '<textarea id="bk" aria-label="Backup code" placeholder="Paste a backup code here to restore">'+'</textarea>'+
-     '<div class="row"><button class="btn" data-act="copy">Copy backup code</button><button class="btn" data-act="restore">Restore</button></div>'+
-     (backupMsg?'<p class="note" role="status">'+esc(backupMsg)+'</p>':'')+
-     (confirmRestore?'<div class="confirm">Replace all current progress with this backup? <div class="row"><button class="btn primary" data-act="restore-yes">Replace</button><button class="btn" data-act="restore-no">Cancel</button></div></div>':'')+'</section>';
   h+=quoteCard(4,"van-gogh-oleanders.jpg","Vincent van Gogh, Oleanders",230,"50% 35%","np");
+  h+=quoteCard(1,"morris-willow.jpg","William Morris, Willow pattern",90,"50% 50%","np");
+  h+=fillPic(4,"hidley-poestenkill.jpg","Joseph H. Hidley, Poestenkill, New York","50% 40%");
   return h;
 }
 
@@ -721,7 +753,9 @@ function render(){
   if(m==="full"||m==="left") document.getElementById("left").innerHTML=renderLeft(st);
   if(m==="full"||m==="today") document.getElementById("center").innerHTML=renderCenter();
   if(m==="full"||m==="right") document.getElementById("right").innerHTML=renderRight(st);
+  document.documentElement.classList.toggle("parts", pt>=1 && pt<=4);
   if(pt) applyPart(pt);
+  sizeParts(); checkFills();
   document.getElementById("app").style.display = (pt===5) ? "none" : "";
   document.getElementById("credits").hidden = !(mode()==="full" || pt===5);
   document.documentElement.classList.toggle("p5", pt===5);
@@ -804,7 +838,9 @@ function fitLayout(){
   if(w<DESIGN_MIN) root.style.zoom=String(Math.max(0.45, w/DESIGN_MIN));
 }
 fitLayout();
-var fitTimer=null; window.addEventListener("resize", function(){ clearTimeout(fitTimer); fitTimer=setTimeout(fitLayout,60); });
+var fitTimer=null; window.addEventListener("resize", function(){ clearTimeout(fitTimer); fitTimer=setTimeout(function(){ fitLayout(); sizeParts(); checkFills(); },60); });
+try{ new ResizeObserver(function(){ checkFills(); }).observe(document.getElementById("app")); }catch(x){}
+try{ document.fonts.ready.then(checkFills); }catch(x){}
 window.addEventListener("hashchange", function(){ fitLayout(); render(); });
 render();
 })();
